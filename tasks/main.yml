@@ -1,0 +1,35 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for update-servers
+
+- name: Fail on unsupported OS
+  ansible.builtin.assert:
+    that: ansible_facts['os_family'] in ['Debian', 'RedHat']
+    fail_msg: "Unsupported OS family: {{ ansible_facts['os_family'] }}"
+  tags: [update, reboot]
+
+- name: Run OS-specific update
+  ansible.builtin.include_tasks:
+    file: "{{ ansible_facts['os_family'] | lower }}.yml"
+    apply:
+      tags: [update]
+  tags: [update]
+
+- name: Reboot if required
+  ansible.builtin.reboot:
+    msg: "Rebooting after package updates (Ansible)"
+    reboot_timeout: "{{ update_reboot_timeout }}"
+    post_reboot_delay: "{{ update_post_reboot_delay }}"
+  register: update_reboot_result
+  when:
+    - update_reboot_needed | default(false) | bool
+    - update_reboot_allowed | bool
+  tags: [reboot]
+
+- name: Summary
+  ansible.builtin.debug:
+    msg: >-
+      changed={{ update_pkg_result.changed | default(false) }}
+      reboot_needed={{ update_reboot_needed | default(false) }}
+      rebooted={{ update_reboot_result.rebooted | default(false) }}
+  tags: [always]

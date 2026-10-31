@@ -1,0 +1,12 @@
+#SPDX-License-Identifier: MIT-0
+---
+# defaults file for update-servers
+
+# Reboot automatically when the OS reports one is needed.
+# Set false per host to only report it.
+update_reboot_allowed: true
+update_reboot_timeout: 600
+# Seconds to wait after boot before the next task, so services settle.
+update_post_reboot_delay: 30
+update_apt_cache_valid_time: 3600
+update_autoremove: true

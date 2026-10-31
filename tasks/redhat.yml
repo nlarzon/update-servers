@@ -1,0 +1,28 @@
+#SPDX-License-Identifier: MIT-0
+---
+# RHEL/CentOS/Fedora update tasks
+
+- name: Upgrade packages (RedHat)
+  ansible.builtin.dnf:
+    name: "*"
+    state: latest
+    update_only: true
+    update_cache: true
+  register: update_pkg_result
+
+- name: Install needs-restarting plugin (RedHat)
+  ansible.builtin.dnf:
+    name: dnf-plugins-core
+    state: present
+
+# rc 1 = reboot needed, rc 0 = not needed. Read-only, so run in check mode too.
+- name: Check reboot needed (RedHat)
+  ansible.builtin.command: dnf needs-restarting -r
+  register: update_needs_restart
+  changed_when: false
+  failed_when: update_needs_restart.rc not in [0, 1]
+  check_mode: false
+
+- name: Record reboot status (RedHat)
+  ansible.builtin.set_fact:
+    update_reboot_needed: "{{ update_needs_restart.rc == 1 }}"

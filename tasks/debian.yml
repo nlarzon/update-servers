@@ -1,0 +1,21 @@
+#SPDX-License-Identifier: MIT-0
+---
+# Debian/Ubuntu update tasks
+
+- name: Upgrade packages (Debian)
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: "{{ update_apt_cache_valid_time }}"
+    upgrade: dist
+    autoremove: "{{ update_autoremove }}"
+    autoclean: true
+  register: update_pkg_result
+
+- name: Check reboot flag (Debian)
+  ansible.builtin.stat:
+    path: /var/run/reboot-required
+  register: update_reboot_flag
+
+- name: Record reboot status (Debian)
+  ansible.builtin.set_fact:
+    update_reboot_needed: "{{ update_reboot_flag.stat.exists }}"
